@@ -1,0 +1,13 @@
+version: '3.5'
+
+services:
+  mosquitto:
+    container_name: mosquitto_container
+    image: eclipse-mosquitto
+    volumes:
+      - ./mosquitto/config:/mosquitto/config/
+    ports:
+      - '21883:1883'
+      - '29001:9001'
+    
+
