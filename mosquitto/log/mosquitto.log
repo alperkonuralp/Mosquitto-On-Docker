@@ -1,0 +1,8 @@
+1640809364: mosquitto version 2.0.14 starting
+1640809364: Config loaded from /mosquitto/config/mosquitto.conf.
+1640809364: Opening ipv4 listen socket on port 1883.
+1640809364: Opening ipv6 listen socket on port 1883.
+1640809364: mosquitto version 2.0.14 running
+1640810628: New connection from 172.18.0.1:49990 on port 1883.
+1640810628: New client connected from 172.18.0.1:49990 as mqtt-explorer-c0afcffa (p2, c1, k60, u'mosquitto').
+1640811165: Saving in-memory database to /mosquitto/data//mosquitto.db.

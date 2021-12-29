@@ -1,13 +1,15 @@
-version: '3.5'
+version: '3'
 
 services:
   mosquitto:
     container_name: mosquitto_container
     image: eclipse-mosquitto
+    # network_mode: host
     volumes:
-      - ./mosquitto/config:/mosquitto/config/
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
     ports:
-      - '21883:1883'
-      - '29001:9001'
+      - '1883:1883'
     
 
