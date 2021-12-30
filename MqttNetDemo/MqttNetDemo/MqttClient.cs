@@ -17,7 +17,7 @@ namespace MqttNetDemo
 
         public int Port { get; set; }
 
-        public string ClientId { get; set; } //"ClientPublisher"
+        public string ClientId { get; set; }
 
         public string UserName { get; set; }
 
@@ -31,7 +31,7 @@ namespace MqttNetDemo
 
         public event EventHandler<MqttApplicationMessageReceivedEventArgs>? OnApplicationMessageReceived;
 
-        public MqttClient(string server = "localhost", int port = 1883, string userName = "mosquitto", string password = "P@ssw0rd", string? clientId = null)
+        public MqttClient(string server, int port, string userName, string password, string? clientId = null)
         {
             Server = server;
             Port = port;
