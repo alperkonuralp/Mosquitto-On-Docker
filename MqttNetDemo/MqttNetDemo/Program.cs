@@ -9,7 +9,7 @@ var managedMqttClient = new MqttClient("localhost", 1883, "mosquitto", "P@ssw0rd
 managedMqttClient.OnClientConnected += ClientConnected;
 managedMqttClient.OnClientDisconnected += ClientDisconnected;
 
-await managedMqttClient.Connect();
+await managedMqttClient.ConnectAsync();
 
 while (managedMqttClient.Client != null && !managedMqttClient.Client.IsConnected)
 {
@@ -25,7 +25,7 @@ for (int i = 0; i < 20; i++)
         {
             var simpleMessage = $"Simple Message - {i + 1}";
 
-            await managedMqttClient.Publish("SimpleMessage", simpleMessage);
+            await managedMqttClient.PublishAsync("SimpleMessage", simpleMessage);
 
             Console.WriteLine($"'{simpleMessage}' send.");
         }),
@@ -39,7 +39,7 @@ for (int i = 0; i < 20; i++)
                 DateTimeOfUnixTimestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds()
             };
 
-            await managedMqttClient.Publish("RoomTemperatures", areaTemperatureData);
+            await managedMqttClient.PublishAsync("RoomTemperatures", areaTemperatureData);
         }),
         Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(3)); })
         );
@@ -51,7 +51,7 @@ managedMqttClient.Close();
 
 void ClientConnected(object? sender, MqttClientConnectedEventArgs e)
 {
-    Console.WriteLine("Client Connection Result : " + e.ConnectResult.ReasonString);
+    Console.WriteLine("Client Connection Result : " + e.ConnectResult.ResultCode);
 }
 
 void ClientDisconnected(object? sender, MqttClientDisconnectedEventArgs e)

@@ -13,6 +13,8 @@ namespace MqttNetDemo
 {
     public class MqttClient
     {
+        private static readonly MqttFactory mqttFactory = new MqttFactory();
+
         public string Server { get; set; }
 
         public int Port { get; set; }
@@ -40,10 +42,8 @@ namespace MqttNetDemo
             ClientId = clientId ?? "Client_" + Guid.NewGuid();
         }
 
-        public async Task Connect()
+        public async Task ConnectAsync()
         {
-            var mqttFactory = new MqttFactory();
-
             var tlsOptions = new MqttClientTlsOptions
             {
                 UseTls = false,
@@ -83,14 +83,14 @@ namespace MqttNetDemo
             Client.DisconnectedHandler = new MqttClientDisconnectedHandlerDelegate(OnDisconnected);
             Client.ApplicationMessageReceivedHandler = new MqttApplicationMessageReceivedHandlerDelegate(HandleReceivedApplicationMessage);
 
-            await this.Client.StartAsync(
+            await Client.StartAsync(
                 new ManagedMqttClientOptions
                 {
                     ClientOptions = options
                 });
         }
 
-        public async Task Publish<T>(string topic, T messageObject)
+        public async Task PublishAsync<T>(string topic, T messageObject)
         {
             if (Client == null) throw new InvalidOperationException();
             if (messageObject == null) throw new ArgumentNullException(nameof(messageObject));
@@ -121,7 +121,10 @@ namespace MqttNetDemo
         public void Close()
         {
             if (Client != null)
+            {
                 Client.Dispose();
+                Client = null;
+            }
         }
 
         private void OnConnected(MqttClientConnectedEventArgs args)
