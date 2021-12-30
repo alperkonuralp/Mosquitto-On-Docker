@@ -1,6 +1,9 @@
 ﻿using MessagePack;
 using MQTTnet;
+using MQTTnet.Client.Connecting;
+using MQTTnet.Client.Disconnecting;
 using MQTTnet.Client.Options;
+using MQTTnet.Client.Receiving;
 using MQTTnet.Extensions.ManagedClient;
 using MQTTnet.Formatter;
 using MQTTnet.Protocol;
@@ -8,9 +11,36 @@ using System.Text;
 
 namespace MqttNetDemo
 {
-    public static class MqttClient
+    public class MqttClient
     {
-        public static async Task<IManagedMqttClient> Connect()
+        public string Server { get; set; }
+
+        public int Port { get; set; }
+
+        public string ClientId { get; set; } //"ClientPublisher"
+
+        public string UserName { get; set; }
+
+        public string Password { get; set; }
+
+        public IManagedMqttClient? Client { get; set; } = null;
+
+        public event EventHandler<MqttClientConnectedEventArgs>? OnClientConnected;
+
+        public event EventHandler<MqttClientDisconnectedEventArgs>? OnClientDisconnected;
+
+        public event EventHandler<MqttApplicationMessageReceivedEventArgs>? OnApplicationMessageReceived;
+
+        public MqttClient(string server = "localhost", int port = 1883, string userName = "mosquitto", string password = "P@ssw0rd", string? clientId = null)
+        {
+            Server = server;
+            Port = port;
+            UserName = userName;
+            Password = password;
+            ClientId = clientId ?? "Client_" + Guid.NewGuid();
+        }
+
+        public async Task Connect()
         {
             var mqttFactory = new MqttFactory();
 
@@ -24,12 +54,12 @@ namespace MqttNetDemo
 
             var options = new MqttClientOptions
             {
-                ClientId = "ClientPublisher",
+                ClientId = ClientId,
                 ProtocolVersion = MqttProtocolVersion.V311,
                 ChannelOptions = new MqttClientTcpOptions
                 {
-                    Server = "localhost",
-                    Port = 1883,
+                    Server = Server,
+                    Port = Port,
                     TlsOptions = tlsOptions
                 }
             };
@@ -41,25 +71,42 @@ namespace MqttNetDemo
 
             options.Credentials = new MqttClientCredentials
             {
-                Username = "mosquitto",
-                Password = Encoding.UTF8.GetBytes("P@ssw0rd")
+                Username = UserName,
+                Password = Encoding.UTF8.GetBytes(Password)
             };
 
             options.CleanSession = true;
             options.KeepAlivePeriod = TimeSpan.FromSeconds(5);
-            var managedMqttClientPublisher = mqttFactory.CreateManagedMqttClient();
+            Client = mqttFactory.CreateManagedMqttClient();
 
-            await managedMqttClientPublisher.StartAsync(
+            Client.ConnectedHandler = new MqttClientConnectedHandlerDelegate(OnConnected);
+            Client.DisconnectedHandler = new MqttClientDisconnectedHandlerDelegate(OnDisconnected);
+            Client.ApplicationMessageReceivedHandler = new MqttApplicationMessageReceivedHandlerDelegate(HandleReceivedApplicationMessage);
+
+            await this.Client.StartAsync(
                 new ManagedMqttClientOptions
                 {
                     ClientOptions = options
                 });
-
-            return managedMqttClientPublisher;
         }
 
-        public static async Task Publish(IManagedMqttClient managedMqttClientPublisher, string topic, string messageText)
+        public async Task Publish<T>(string topic, T messageObject)
         {
+            if (Client == null) throw new InvalidOperationException();
+            if (messageObject == null) throw new ArgumentNullException(nameof(messageObject));
+
+            string messageText;
+
+            if (messageObject is string stringMessageObject)
+            {
+                messageText = stringMessageObject;
+            }
+            else
+            {
+                byte[] bytes = MessagePackSerializer.Typeless.Serialize(messageObject);
+                messageText = MessagePackSerializer.ConvertToJson(bytes);
+            }
+
             var payload = Encoding.UTF8.GetBytes(messageText);
             var message = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
@@ -68,23 +115,28 @@ namespace MqttNetDemo
                 .WithRetainFlag()
                 .Build();
 
-            await managedMqttClientPublisher.PublishAsync(message);
+            await Client.PublishAsync(message);
         }
 
-        public static async Task Publish<T>(IManagedMqttClient managedMqttClientPublisher, string topic, T messageObject)
+        public void Close()
         {
-            byte[] bytes = MessagePackSerializer.Typeless.Serialize(messageObject);
-            string messageText = MessagePackSerializer.ConvertToJson(bytes);
+            if (Client != null)
+                Client.Dispose();
+        }
 
-            var payload = Encoding.UTF8.GetBytes(messageText);
-            var message = new MqttApplicationMessageBuilder()
-                .WithTopic(topic)
-                .WithPayload(payload)
-                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
-                .WithRetainFlag()
-                .Build();
+        private void OnConnected(MqttClientConnectedEventArgs args)
+        {
+            OnClientConnected?.Invoke(this, args);
+        }
 
-            await managedMqttClientPublisher.PublishAsync(message);
+        private void OnDisconnected(MqttClientDisconnectedEventArgs args)
+        {
+            OnClientDisconnected?.Invoke(this, args);
+        }
+
+        private void HandleReceivedApplicationMessage(MqttApplicationMessageReceivedEventArgs args)
+        {
+            OnApplicationMessageReceived?.Invoke(this, args);
         }
     }
 }
