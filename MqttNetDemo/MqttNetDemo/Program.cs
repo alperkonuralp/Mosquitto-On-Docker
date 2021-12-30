@@ -1,71 +1,28 @@
 ﻿// See https://aka.ms/new-console-template for more information
-//Console.WriteLine("Hello, World!");
 
-using MQTTnet;
-using MQTTnet.Client.Options;
-using MQTTnet.Extensions.ManagedClient;
-using MQTTnet.Formatter;
-using MQTTnet.Protocol;
-using System.Text;
+using MqttNetDemo;
 
-var mqttFactory = new MqttFactory();
+var managedMqttClientPublisher = await MqttClient.Connect();
 
-var tlsOptions = new MqttClientTlsOptions
-{
-    UseTls = false,
-    IgnoreCertificateChainErrors = true,
-    IgnoreCertificateRevocationErrors = true,
-    AllowUntrustedCertificates = true
-};
-
-var options = new MqttClientOptions
-{
-    ClientId = "ClientPublisher",
-    ProtocolVersion = MqttProtocolVersion.V311,
-    ChannelOptions = new MqttClientTcpOptions
-    {
-        Server = "localhost",
-        Port = 1883,
-        TlsOptions = tlsOptions
-    }
-};
-
-if (options.ChannelOptions == null)
-{
-    throw new InvalidOperationException();
-}
-
-options.Credentials = new MqttClientCredentials
-{
-    Username = "mosquitto",
-    Password = Encoding.UTF8.GetBytes("P@ssw0rd")
-};
-
-options.CleanSession = true;
-options.KeepAlivePeriod = TimeSpan.FromSeconds(5);
-var managedMqttClientPublisher = mqttFactory.CreateManagedMqttClient();
-
-await managedMqttClientPublisher.StartAsync(
-    new ManagedMqttClientOptions
-    {
-        ClientOptions = options
-    });
+Random rnd = new Random();
 
 for (int i = 0; i < 20; i++)
 {
     var simpleMessage = $"Simple Message - {i + 1}";
 
-    var payload = Encoding.UTF8.GetBytes(simpleMessage);
-    var message = new MqttApplicationMessageBuilder()
-        .WithTopic("Simple Message")
-        .WithPayload(payload)
-        .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
-        .WithRetainFlag()
-        .Build();
-
-    await managedMqttClientPublisher.PublishAsync(message);
+    await MqttClient.Publish(managedMqttClientPublisher, "SimpleMessage", simpleMessage);
 
     Console.WriteLine($"'{simpleMessage}' send.");
+
+
+    var areaTemperatureData = new AreaTemperatureData
+    {
+        Name = $"Room {(i % 3) + 1}",
+        Temperature = Math.Round(rnd.NextDouble() * 2 + 23, 2),
+        DateTimeOfUnixTimestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds()
+    };
+
+    await MqttClient.Publish(managedMqttClientPublisher, "RoomTemperatures", areaTemperatureData);
 
     await Task.Delay(TimeSpan.FromSeconds(3));
 }
