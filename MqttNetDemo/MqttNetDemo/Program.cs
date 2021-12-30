@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using MQTTnet;
 using MQTTnet.Client.Connecting;
 using MQTTnet.Client.Disconnecting;
 using MqttNetDemo;
@@ -8,6 +9,10 @@ var managedMqttClient = new MqttClient("localhost", 1883, "mosquitto", "P@ssw0rd
 
 managedMqttClient.OnClientConnected += ClientConnected;
 managedMqttClient.OnClientDisconnected += ClientDisconnected;
+
+managedMqttClient.OnApplicationMessageReceived += HandleReceivedApplicationMessage;
+await managedMqttClient.SubscribeAsync("SimpleMessage");
+
 
 await managedMqttClient.ConnectAsync();
 
@@ -57,4 +62,11 @@ void ClientConnected(object? sender, MqttClientConnectedEventArgs e)
 void ClientDisconnected(object? sender, MqttClientDisconnectedEventArgs e)
 {
     Console.WriteLine("Client Disconnection Result : " + e.Reason);
+}
+
+
+void HandleReceivedApplicationMessage(object? sender, MqttApplicationMessageReceivedEventArgs args)
+{
+    var message = System.Text.Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
+    Console.WriteLine($"Message Received from {args.ApplicationMessage.Topic} : {message}");
 }

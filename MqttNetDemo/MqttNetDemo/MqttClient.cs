@@ -25,7 +25,7 @@ namespace MqttNetDemo
 
         public string Password { get; set; }
 
-        public IManagedMqttClient? Client { get; set; } = null;
+        public IManagedMqttClient Client { get; set; }
 
         public event EventHandler<MqttClientConnectedEventArgs>? OnClientConnected;
 
@@ -40,6 +40,7 @@ namespace MqttNetDemo
             UserName = userName;
             Password = password;
             ClientId = clientId ?? "Client_" + Guid.NewGuid();
+            Client = mqttFactory.CreateManagedMqttClient();
         }
 
         public async Task ConnectAsync()
@@ -77,7 +78,7 @@ namespace MqttNetDemo
 
             options.CleanSession = true;
             options.KeepAlivePeriod = TimeSpan.FromSeconds(5);
-            Client = mqttFactory.CreateManagedMqttClient();
+            
 
             Client.ConnectedHandler = new MqttClientConnectedHandlerDelegate(OnConnected);
             Client.DisconnectedHandler = new MqttClientDisconnectedHandlerDelegate(OnDisconnected);
@@ -118,12 +119,19 @@ namespace MqttNetDemo
             await Client.PublishAsync(message);
         }
 
+        public async Task SubscribeAsync(string topic)
+        {
+            var topicFilter = new MqttTopicFilterBuilder()
+                .WithTopic(topic)
+                .Build();
+            await Client.SubscribeAsync(topicFilter);
+        }
+
         public void Close()
         {
             if (Client != null)
             {
                 Client.Dispose();
-                Client = null;
             }
         }
 
