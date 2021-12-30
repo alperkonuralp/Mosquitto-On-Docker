@@ -6,3 +6,23 @@
 1640810628: New connection from 172.18.0.1:49990 on port 1883.
 1640810628: New client connected from 172.18.0.1:49990 as mqtt-explorer-c0afcffa (p2, c1, k60, u'mosquitto').
 1640811165: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1640812248: Client mqtt-explorer-c0afcffa disconnected.
+1640812336: mosquitto version 2.0.14 terminating
+1640812336: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1640872611: mosquitto version 2.0.14 starting
+1640872611: Config loaded from /mosquitto/config/mosquitto.conf.
+1640872611: Opening ipv4 listen socket on port 1883.
+1640872611: Opening ipv6 listen socket on port 1883.
+1640872611: mosquitto version 2.0.14 running
+1640872649: New connection from 172.18.0.1:58044 on port 1883.
+1640872649: New client connected from 172.18.0.1:58044 as mqtt-explorer-a112f1bd (p2, c1, k60, u'mosquitto').
+1640872928: New connection from 172.18.0.1:58048 on port 1883.
+1640872928: New client connected from 172.18.0.1:58048 as ClientPublisher (p2, c1, k5, u'mosquitto').
+1640872938: Client ClientPublisher closed its connection.
+1640873224: New connection from 172.18.0.1:58052 on port 1883.
+1640873224: New client connected from 172.18.0.1:58052 as ClientPublisher (p2, c1, k5, u'mosquitto').
+1640873234: Client ClientPublisher closed its connection.
+1640873763: New connection from 172.18.0.1:58056 on port 1883.
+1640873763: New client connected from 172.18.0.1:58056 as ClientPublisher (p2, c1, k5, u'mosquitto').
+1640873833: Client ClientPublisher closed its connection.
+1640874411: Saving in-memory database to /mosquitto/data//mosquitto.db.
